@@ -1,0 +1,22 @@
+node_modules
+out
+dist
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+desktop.ini
+vault.dat*
+
+# local notes
+*-QA.md
+*.kvault
+
+# Capacitor / Android
+mobile/www
+mobile/android
+mobile/ios
+.gradle
+local.properties

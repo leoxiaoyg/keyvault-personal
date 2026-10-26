@@ -1,0 +1,81 @@
+{
+  "name": "keyvault-personal",
+  "version": "1.0.0",
+  "description": "A secure local-first personal password manager.",
+  "main": "./out/main/index.js",
+  "workspaces": [
+    "packages/*",
+    "mobile"
+  ],
+  "scripts": {
+    "format": "prettier --write .",
+    "build": "electron-vite build",
+    "dev": "electron-vite dev --watch",
+    "preview": "electron-vite preview",
+    "show-path": "electron-vite show-path",
+    "package": "npm run build && electron-builder --win --x64"
+  },
+  "build": {
+    "appId": "com.keyvault.personal",
+    "productName": "KeyVault Personal",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "resources/icon.ico"
+    }
+  },
+  "keywords": [
+    "password-manager",
+    "electron",
+    "local-first",
+    "zero-knowledge",
+    "aes-gcm",
+    "typescript",
+    "react",
+    "capacitor"
+  ],
+  "author": {
+    "name": "leoxiaoyg",
+    "url": "https://github.com/leoxiaoyg"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leoxiaoyg/keyvault-personal.git"
+  },
+  "bugs": {
+    "url": "https://github.com/leoxiaoyg/keyvault-personal/issues"
+  },
+  "homepage": "https://github.com/leoxiaoyg/keyvault-personal#readme",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "electron": "^41.2.1",
+    "electron-builder": "^26.8.1",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@electron-toolkit/preload": "^3.0.2",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@keyvault/core": "file:packages/vault-core",
+    "@capacitor/core": "^7.2.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "clsx": "^2.1.1",
+    "electron-vite": "^5.0.0",
+    "lucide-react": "^1.8.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwind-merge": "^3.5.0",
+    "vite": "^8.0.9"
+  }
+}
