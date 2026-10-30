@@ -65,13 +65,16 @@ The encryption core is extracted into [`packages/vault-core`](packages/vault-cor
 # 1. Install dependencies
 npm install
 
-# 2. Run in development
+# 2. Run vault-core tests
+npm test
+
+# 3. Run in development
 npm run dev
 
-# 3. Build production bundle
+# 4. Build production bundle
 npm run build
 
-# 4. Package a portable Windows .exe
+# 5. Package a portable Windows .exe
 npm run package
 # → dist/KeyVault Personal 1.0.0.exe
 ```

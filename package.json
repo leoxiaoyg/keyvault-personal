@@ -13,6 +13,7 @@
     "dev": "electron-vite dev --watch",
     "preview": "electron-vite preview",
     "show-path": "electron-vite show-path",
+    "test": "tsc -p packages/vault-core/tsconfig.test.json && node --test packages/vault-core/dist-test/test/*.test.js",
     "package": "npm run build && electron-builder --win --x64"
   },
   "build": {
