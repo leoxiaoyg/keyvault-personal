@@ -39,6 +39,8 @@ If you lose the master password, the data cannot be recovered. That is by design
 - The vault file is **never** sent over the network. The app makes no telemetry, analytics, or update-phone-home calls.
 - Clipboard contents self-destruct after 30 seconds.
 
+Limits, and what this app does not protect against, are in [SECURITY.md](SECURITY.md).
+
 ## Screenshots
 
 ![Main vault list](assets/screenshot-1.png)
