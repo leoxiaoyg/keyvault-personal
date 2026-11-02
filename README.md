@@ -20,7 +20,7 @@ If you lose the master password, the data cannot be recovered. That is by design
 - **Penetrating search** — one search box across site names, usernames, and binding attributes.
 - **Tag organization** — add up to three tags per entry, choose from existing tags or create new ones, then filter the list by tag.
 - **Clipboard hygiene** — copied passwords are cleared from the system clipboard after 30 seconds.
-- **Lock protection** — manual lock anytime; re-open always requires the master password.
+- **Lock protection** — lock manually, or close the window; re-open always requires the master password.
 - **Pure local storage** — the vault file is stored in the app data directory, with manual **export / import** (`.kvault`) for backup and cross-device migration.
 - **Portable** — ships as a single portable `.exe`, no installer required.
 
@@ -40,12 +40,24 @@ If you lose the master password, the data cannot be recovered. That is by design
 - The vault file is **never** sent over the network. The app makes no telemetry, analytics, or update-phone-home calls.
 - Clipboard contents self-destruct after 30 seconds.
 
-Limits, and what this app does not protect against, are in [SECURITY.md](SECURITY.md).
+Limits, and what this app does not protect against, are in [SECURITY.md](SECURITY.md). Closing the window locks the vault. There is still no idle timeout. This is not SM2/SM3/SM4.
+
+## Supported platforms
+
+| Platform | Status |
+|---|---|
+| Windows portable `.exe` | Supported |
+| Android | Experimental — same vault format, real-device interop still open |
+| macOS / Linux | Source builds only |
+
+Back up with **Export** inside the app (`.kvault`). If the master password is lost, the vault cannot be opened.
 
 ## Screenshots
 
 ![Main vault list](assets/screenshot-1.png)
 ![Edit entry with multi-account management](assets/screenshot-2.png)
+![Tags and filter chips](assets/screenshot-3.png)
+![Unlock screen](assets/ScreenShot_3.png)
 
 ## Tech Stack
 
@@ -77,7 +89,7 @@ npm run build
 
 # 5. Package a portable Windows .exe
 npm run package
-# → dist/KeyVault Personal 1.0.0.exe
+# → dist/KeyVault Personal 1.1.0.exe
 ```
 
 ### Android (experimental)
@@ -115,8 +127,18 @@ src/
 mobile/
   android-plugin/           # Kotlin crypto plugin (PBKDF2 + AES-GCM)
   scripts/                  # sync / plugin install helpers
-docs/                       # Mobile & packaging guides
+docs/                       # Architecture, testing, mobile, packaging
 ```
+
+## Docs
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Security limits](SECURITY.md)
+- [Test plan](docs/TESTING.md)
+- [Android](docs/MOBILE.md)
+- [Changelog](CHANGELOG.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Retrospective (中文)](docs/RETROSPECTIVE.zh-CN.md)
 
 ## Contributing
 

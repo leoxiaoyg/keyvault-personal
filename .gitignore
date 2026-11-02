@@ -10,6 +10,7 @@ packages/vault-core/dist-test
 Thumbs.db
 desktop.ini
 vault.dat*
+.manual-*
 
 # local notes
 *-QA.md

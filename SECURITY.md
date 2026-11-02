@@ -22,7 +22,7 @@ The Electron renderer runs with `sandbox: false`. Treat the installed app like a
 
 Copied secrets stay on the system clipboard for up to 30 seconds. The app clears the clipboard only if it still holds that same text. Locking the vault does not clear the clipboard. Anything else that can read the clipboard during that window can read the secret.
 
-There is no idle timeout and no lock-on-minimize. You lock manually, or you quit the app.
+Closing the window or quitting the app locks the vault. There is still no idle timeout and no lock-on-minimize.
 
 PBKDF2 at 100,000 iterations slows offline guessing. It is not Argon2, and a weak master password can still be guessed from a stolen vault file. Use a long password you do not reuse.
 

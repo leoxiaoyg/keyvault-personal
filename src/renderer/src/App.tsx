@@ -282,24 +282,26 @@ function App() {
   }
 
   const handleExport = async () => {
-    const { success, error } = await vault.exportVault()
+    const { success, error, cancelled } = await vault.exportVault()
+    if (cancelled) return
     if (success) {
       alert('Vault backup exported successfully!')
-    } else if (error) {
-      alert('Export failed: ' + error)
+    } else {
+      alert('Export failed: ' + (error || 'Could not write the backup file'))
     }
   }
 
   const handleImport = async () => {
-    if (!confirm('This will merge entries from the backup file into your current vault. Continue?')) return
-    
-    const { success, addedCount, error } = await vault.importVault()
+    if (!confirm('Import merges entries from a .kvault backup into this vault. Existing sites are kept. The backup must use the same master password. Continue?')) return
+
+    const { success, addedCount, error, cancelled } = await vault.importVault()
+    if (cancelled) return
     if (success) {
-      alert(`Import successful! Added ${addedCount} new entries.`)
+      alert(`Import finished. Added ${addedCount ?? 0} new entries.`)
       const updatedData = await vault.getData()
       setData(updatedData)
-    } else if (error) {
-      alert('Import failed: ' + error)
+    } else {
+      alert('Import failed: ' + (error || 'The backup could not be read'))
     }
   }
 

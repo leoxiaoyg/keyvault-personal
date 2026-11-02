@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { SecurityManager } from '../src/crypto'
+import { CRYPTO_CONSTANTS, SecurityManager } from '../src/crypto'
 import { VaultEntry } from '../src/types'
-import { HEADER_LENGTH, parseVaultFile } from '../src/vault-format'
+import { AUTH_TAG_LENGTH, HEADER_LENGTH, IV_LENGTH, SALT_LENGTH, parseVaultFile } from '../src/vault-format'
 import { VaultManager } from '../src/vault-manager'
 import { VaultStore } from '../src/vault-store'
 import { normalizeTags } from '../src/tag-utils'
@@ -40,6 +40,19 @@ function openVault(storage = new MemoryFileStorage(), password = PASSWORD) {
 }
 
 describe('SecurityManager', () => {
+  it('matches the documented vault format and Android crypto constants', () => {
+    assert.equal(CRYPTO_CONSTANTS.ALGORITHM, 'aes-256-gcm')
+    assert.equal(CRYPTO_CONSTANTS.DIGEST, 'sha512')
+    assert.equal(CRYPTO_CONSTANTS.ITERATIONS, 100000)
+    assert.equal(CRYPTO_CONSTANTS.KEY_LENGTH, 32)
+    assert.equal(CRYPTO_CONSTANTS.SALT_LENGTH, SALT_LENGTH)
+    assert.equal(CRYPTO_CONSTANTS.IV_LENGTH, IV_LENGTH)
+    assert.equal(SALT_LENGTH, 16)
+    assert.equal(IV_LENGTH, 12)
+    assert.equal(AUTH_TAG_LENGTH, 16)
+    assert.equal(HEADER_LENGTH, 44)
+  })
+
   it('round-trips plaintext with the derived key', () => {
     const security = new SecurityManager()
     const salt = security.generateSalt()
@@ -112,6 +125,20 @@ describe('Tags', () => {
     const reopened = openVault(storage)
     assert.equal(reopened.manager.unlock(PASSWORD), true)
     assert.deepEqual(reopened.manager.getData()?.entries[0].tags, ['Work', 'Accounts'])
+  })
+
+  it('drops empty tags and caps at three', () => {
+    assert.deepEqual(normalizeTags(['one', 'two', 'three', 'four']), ['one', 'two', 'three'])
+    assert.deepEqual(normalizeTags(['  ', 1, null]), [])
+  })
+
+  it('normalizes tags when an entry is saved', () => {
+    const { manager } = openVault()
+    manager.init(PASSWORD)
+    const entry = makeEntry('1', 'mail')
+    entry.tags = [' Work ', 'work', 'Personal', 'Extra', 'More']
+    manager.saveEntry(entry)
+    assert.deepEqual(manager.getData()?.entries[0].tags, ['Work', 'Personal', 'Extra'])
   })
 
   it('migrates legacy entries without tags to an empty tag list', () => {
@@ -244,6 +271,38 @@ describe('VaultManager', () => {
     assert.equal(result.success, false)
     assert.match(result.error ?? '', /different master password|authenticate|Unsupported state/i)
     assert.equal(current.manager.getData()?.entries.length, 1)
+  })
+
+  it('rejects a truncated backup file', () => {
+    const { manager } = openVault()
+    manager.init(PASSWORD)
+    const result = manager.importMerge(Buffer.alloc(8))
+    assert.equal(result.success, false)
+    assert.match(result.error ?? '', /Invalid backup file/i)
+  })
+
+  it('keeps tags when merging a backup', () => {
+    const source = openVault()
+    source.manager.init(PASSWORD)
+    const mail = makeEntry('a', 'mail')
+    mail.tags = ['Work']
+    source.manager.saveEntry(mail)
+
+    const backupStorage = new MemoryFileStorage()
+    backupStorage.writeAtomic(VAULT_PATH, source.storage.read(VAULT_PATH))
+    const backup = openVault(backupStorage)
+    assert.equal(backup.manager.unlock(PASSWORD), true)
+    const notes = makeEntry('c', 'notes')
+    notes.tags = ['Personal']
+    backup.manager.saveEntry(notes)
+
+    const result = source.manager.importMerge(backupStorage.read(VAULT_PATH))
+    assert.equal(result.success, true)
+    const tags = source.manager.getData()?.entries.map((entry) => [entry.site, entry.tags])
+    assert.deepEqual(tags, [
+      ['mail', ['Work']],
+      ['notes', ['Personal']]
+    ])
   })
 
   it('does not merge a backup from a different master password', () => {

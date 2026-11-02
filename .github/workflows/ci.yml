@@ -84,3 +84,8 @@ jobs:
           name: keyvault-personal-windows-${{ github.ref_name }}
           path: dist/KeyVault Personal *.exe
           if-no-files-found: error
+
+      - name: Attach portable executable to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/KeyVault Personal *.exe

@@ -20,7 +20,7 @@
 - **穿透式搜索** —— 一个搜索框同时检索站点名、用户名与绑定属性。
 - **标签分类** —— 每条条目最多添加 3 个标签，可复用已有标签或直接创建新标签，并按标签筛选列表。
 - **剪贴板卫生** —— 复制的密码在 30 秒后自动从系统剪贴板清除。
-- **锁定保护** —— 可随时手动锁定；重新打开始终需要主密码。
+- **锁定保护** —— 可手动锁定，关闭窗口也会锁定；重新打开始终需要主密码。
 - **纯本地存储** —— 保险库文件存于应用数据目录，支持手动**导出 / 导入**（`.kvault`）用于备份与跨设备迁移。
 - **便携** —— 以单个便携 `.exe` 发布，无需安装。
 
@@ -40,12 +40,24 @@
 - 保险库文件**从不**经网络传输。应用不做任何遥测、分析或更新回传。
 - 剪贴板内容 30 秒后自毁。
 
-做不到的部分写在 [SECURITY.md](SECURITY.md)。
+做不到的部分写在 [SECURITY.md](SECURITY.md)。关闭窗口会锁定保险库。目前没有空闲超时。这不是 SM2/SM3/SM4。
+
+## 支持平台
+
+| 平台 | 状态 |
+|---|---|
+| Windows 便携 `.exe` | 已支持 |
+| Android | 实验性——文件格式一致，真机互通仍待验证 |
+| macOS / Linux | 仅源码构建 |
+
+备份请在应用内 **导出** `.kvault`。主密码遗失后无法打开保险库。
 
 ## 截图
 
 ![主保险库列表](assets/screenshot-1.png)
 ![带多账号管理的编辑界面](assets/screenshot-2.png)
+![标签与筛选](assets/screenshot-3.png)
+![解锁界面](assets/ScreenShot_3.png)
 
 ## 技术栈
 
@@ -77,7 +89,7 @@ npm run build
 
 # 5. 打包便携 Windows .exe
 npm run package
-# → dist/KeyVault Personal 1.0.0.exe
+# → dist/KeyVault Personal 1.1.0.exe
 ```
 
 ### Android（实验性）
@@ -115,8 +127,18 @@ src/
 mobile/
   android-plugin/           # Kotlin 加密插件（PBKDF2 + AES-GCM）
   scripts/                  # 同步 / 插件安装辅助
-docs/                       # 移动端与打包指南
+docs/                       # 架构、测试、移动端与打包
 ```
+
+## 文档
+
+- [架构说明](docs/ARCHITECTURE.md)
+- [安全边界](SECURITY.md)
+- [测试计划](docs/TESTING.md)
+- [Android](docs/MOBILE.md)
+- [更新记录](CHANGELOG.md)
+- [路线图](docs/ROADMAP.md)
+- [项目复盘](docs/RETROSPECTIVE.zh-CN.md)
 
 ## 参与贡献
 

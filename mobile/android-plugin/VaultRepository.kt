@@ -53,6 +53,7 @@ class VaultRepository(private val context: Context) {
 
         val data = cachedData ?: return OpResult(false, "No data")
         val entries = data.getJSONArray("entries")
+        entry.put("tags", normalizeTags(entry.optJSONArray("tags")))
         val entryId = entry.getString("id")
         var found = false
 
@@ -102,7 +103,7 @@ class VaultRepository(private val context: Context) {
             val parts = VaultCrypto.parseVaultFile(buffer)
             val key = masterKey ?: throw IllegalStateException("Vault is locked")
             val decrypted = VaultCrypto.decrypt(parts.ciphertext, parts.iv, parts.authTag, key)
-            val imported = JSONObject(decrypted)
+            val imported = migrateEntries(JSONObject(decrypted))
             val current = cachedData ?: throw IllegalStateException("No current data to merge into")
 
             val importedEntries = imported.getJSONArray("entries")
@@ -185,7 +186,7 @@ class VaultRepository(private val context: Context) {
             if (!entry.has("accounts")) {
                 val accounts = JSONArray()
                 val account = JSONObject()
-                    .put("id", "${entry.getString("id")}-default")
+                    .put("id", "${entry.optString("id", "entry")}-default")
                     .put("username", entry.optString("username", ""))
                     .put("password", entry.optString("password", ""))
                     .put("bindings", JSONArray())
@@ -193,9 +194,27 @@ class VaultRepository(private val context: Context) {
                 accounts.put(account)
                 entry.put("accounts", accounts)
             }
+            entry.put("tags", normalizeTags(entry.optJSONArray("tags")))
         }
 
         return parsed
+    }
+
+    private fun normalizeTags(tags: JSONArray?): JSONArray {
+        val normalized = JSONArray()
+        val seen = HashSet<String>()
+        if (tags == null) return normalized
+
+        for (i in 0 until tags.length()) {
+            if (normalized.length() >= 3) break
+            val tag = tags.optString(i, "").trim()
+            if (tag.isEmpty()) continue
+            val key = tag.lowercase()
+            if (!seen.add(key)) continue
+            normalized.put(tag)
+        }
+
+        return normalized
     }
 
     data class OpResult(val success: Boolean, val error: String? = null)

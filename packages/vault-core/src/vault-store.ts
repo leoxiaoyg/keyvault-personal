@@ -2,37 +2,7 @@ import { SecurityManager } from './crypto'
 import { IFileStorage } from './file-storage'
 import { VaultData } from './types'
 import { parseVaultFile, serializeVaultFile } from './vault-format'
-import { normalizeTags } from './tag-utils'
-
-function migrateEntries(parsed: VaultData): VaultData {
-  if (!parsed || !Array.isArray(parsed.entries)) {
-    return { version: 1, entries: [] }
-  }
-
-  parsed.entries = parsed.entries.map((entry: VaultData['entries'][number] & { username?: string; password?: string; notes?: string; accounts?: VaultData['entries'][number]['accounts'] }) => {
-    const migratedEntry = !entry.accounts
-      ? {
-        ...entry,
-        accounts: [
-          {
-            id: entry.id + '-default',
-            username: entry.username || '',
-            password: entry.password || '',
-            bindings: [],
-            notes: entry.notes || ''
-          }
-        ]
-      }
-      : entry
-
-    return {
-      ...migratedEntry,
-      tags: normalizeTags(migratedEntry.tags)
-    }
-  })
-
-  return parsed
-}
+import { migrateVaultData } from './migrate'
 
 export class VaultStore {
   private cachedData: VaultData | null = null
@@ -63,7 +33,7 @@ export class VaultStore {
 
       this.security.unlock(password, salt)
       const decrypted = this.security.decrypt(encrypted, iv, authTag)
-      this.cachedData = migrateEntries(JSON.parse(decrypted))
+      this.cachedData = migrateVaultData(JSON.parse(decrypted))
       return true
     } catch (e) {
       console.error('Failed to load vault:', e)

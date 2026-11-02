@@ -24,6 +24,10 @@ function createWindow(): void {
     mainWindow?.show()
   })
 
+  mainWindow.on('close', () => {
+    lockVault()
+  })
+
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -69,24 +73,26 @@ app.whenReady().then(() => {
   ipcMain.handle('vault:delete-entry', (_, id: string) => vaultManager.deleteEntry(id))
 
   ipcMain.handle('vault:export', async () => {
-    if (!mainWindow) return { success: false }
+    if (!mainWindow) return { success: false, error: 'No window' }
+    if (vaultManager.isLocked()) return { success: false, error: 'Locked' }
 
-    const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
       title: 'Export Vault Backup',
       defaultPath: 'KeyVault_Backup.kvault',
       filters: [{ name: 'KeyVault Files', extensions: ['kvault'] }]
     })
 
-    if (filePath) {
-      try {
-        fs.copyFileSync(vaultManager.getFilePath(), filePath)
-        return { success: true }
-      } catch (e) {
-        const message = e instanceof Error ? e.message : 'Export failed'
-        return { success: false, error: message }
-      }
+    if (canceled || !filePath) {
+      return { success: false, cancelled: true }
     }
-    return { success: false }
+
+    try {
+      fs.copyFileSync(vaultManager.getFilePath(), filePath)
+      return { success: true }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Export failed'
+      return { success: false, error: message }
+    }
   })
 
   ipcMain.handle('vault:import', async () => {
@@ -100,11 +106,17 @@ app.whenReady().then(() => {
       properties: ['openFile']
     })
 
-    if (filePaths && filePaths.length > 0) {
+    if (!filePaths || filePaths.length === 0) {
+      return { success: false, cancelled: true }
+    }
+
+    try {
       const buffer = fs.readFileSync(filePaths[0])
       return vaultManager.importMerge(buffer)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Import failed'
+      return { success: false, error: message }
     }
-    return { success: false }
   })
 
   ipcMain.handle('clipboard:copy', (_, text: string) => {
@@ -130,6 +142,10 @@ function lockVault(): void {
     mainWindow.webContents.send('vault:locked-event')
   }
 }
+
+app.on('before-quit', () => {
+  lockVault()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

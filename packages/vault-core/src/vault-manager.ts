@@ -2,6 +2,7 @@ import { SecurityManager } from './crypto'
 import { VaultStore } from './vault-store'
 import { VaultData, VaultEntry } from './types'
 import { HEADER_LENGTH, parseVaultFile } from './vault-format'
+import { migrateEntry, migrateVaultData } from './migrate'
 
 export class VaultManager {
   constructor(
@@ -41,11 +42,16 @@ export class VaultManager {
     const data = this.store.getData()
     if (!data) return { success: false, error: 'No data' }
 
-    const index = data.entries.findIndex((e) => e.id === entry.id)
+    const normalized = migrateEntry(entry)
+    if (!normalized.id || !normalized.site) {
+      return { success: false, error: 'Invalid entry' }
+    }
+
+    const index = data.entries.findIndex((e) => e.id === normalized.id)
     if (index > -1) {
-      data.entries[index] = entry
+      data.entries[index] = normalized
     } else {
-      data.entries.push(entry)
+      data.entries.push(normalized)
     }
 
     this.store.save()
@@ -75,7 +81,14 @@ export class VaultManager {
 
       const { iv, authTag, encrypted } = parseVaultFile(buffer)
       const decrypted = this.security.decrypt(encrypted, iv, authTag)
-      const importedData = JSON.parse(decrypted) as VaultData
+      let parsed: unknown
+      try {
+        parsed = JSON.parse(decrypted)
+      } catch {
+        throw new Error('Invalid backup file')
+      }
+
+      const importedData = migrateVaultData(parsed)
       const currentData = this.store.getData()
 
       if (!currentData) {

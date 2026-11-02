@@ -3,6 +3,7 @@ import { VaultData, VaultEntry } from './types'
 export interface OpResult {
   success: boolean
   error?: string
+  cancelled?: boolean
 }
 
 export interface ExportResult extends OpResult {}

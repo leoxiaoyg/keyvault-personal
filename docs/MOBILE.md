@@ -6,7 +6,12 @@
 |------|------|
 | 抽离 `vault-core`、Capacitor 骨架 | 已完成 |
 | Kotlin 加密插件、界面自动切换、Android 工程 | 已完成 |
-| 真机调试、桌面与手机 vault 互通 | 未做 |
+| 加密参数与文件头对齐（桌面 `vault-core` / Kotlin `VaultCrypto`） | 已核对 |
+| 标签迁移（缺 tags、去重、最多 3 个） | 已与桌面对齐 |
+| 本机 Android SDK / OpenJDK 21 | 已具备 |
+| Debug APK（`assembleDebug`） | 已在本机构建成功 |
+| 当前 USB 设备 | 无（`adb devices` 为空） |
+| 真机安装、桌面与手机 `.kvault` 双向互通 | 未做 |
 
 ## 目录结构
 
@@ -68,6 +73,21 @@ npx cap open android
 Android Studio 中：**Run** 运行到设备。
 
 **打包 APK/AAB** 详见 [Android 打包指南](./ANDROID-PACKAGING.md)。
+
+## 互通核对（代码层）
+
+桌面与 Android 当前使用同一组常数，并由 `npm test` 中的格式断言锁住：
+
+| 参数 | 桌面 | Android |
+|---|---|---|
+| KDF | PBKDF2-HMAC-SHA512 | `PBKDF2WithHmacSHA512` |
+| 迭代 | 100,000 | 100,000 |
+| 密钥 | 32 字节 | 32 字节 |
+| 算法 | AES-256-GCM | `AES/GCM/NoPadding` |
+| IV / Salt / Tag | 12 / 16 / 16 | 12 / 16 / 16 |
+| 文件头 | `[Salt 16][IV 12][AuthTag 16][密文]` | 相同 |
+
+真机验收仍按下面「跨平台兼容性测试」执行。未完成前保持实验性。
 
 ## 已实现能力
 
