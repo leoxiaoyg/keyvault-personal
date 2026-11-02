@@ -1,6 +1,7 @@
 node_modules
 out
 dist
+dist-ci
 packages/vault-core/dist-test
 *.log
 .env
