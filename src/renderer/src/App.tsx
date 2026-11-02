@@ -528,6 +528,21 @@ function App() {
                   </button>
                 </div>
               </div>
+              {entry.tags?.length > 0 && (
+                <div className="px-4 md:px-5 pb-3 flex flex-wrap gap-1.5">
+                  {entry.tags.map(tag => (
+                    <button
+                      type="button"
+                      key={tag}
+                      onClick={() => setSelectedTag(tag)}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[11px] hover:bg-blue-500/20"
+                    >
+                      <Tags className="w-3 h-3" />
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              )}
               
               {/* Accounts List */}
               <div className="divide-y divide-slate-800">
@@ -739,21 +754,6 @@ function App() {
                             </button>
                           </div>
                         </div>
-                {entry.tags?.length > 0 && (
-                  <div className="px-4 md:px-5 pb-3 flex flex-wrap gap-1.5">
-                    {entry.tags.map(tag => (
-                      <button
-                        type="button"
-                        key={tag}
-                        onClick={() => setSelectedTag(tag)}
-                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[11px] hover:bg-blue-500/20"
-                      >
-                        <Tags className="w-3 h-3" />
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                )}
                       </div>
 
                       {/* Bindings Sub-section */}
