@@ -18,11 +18,12 @@ import {
   ChevronUp,
   X,
   Wand2,
+  Tags,
   Download,
   Upload,
   AlertTriangle
 } from 'lucide-react'
-import { VaultEntry, Account, Binding } from '@keyvault/core'
+import { VaultEntry, Account, Binding, normalizeTags } from '@keyvault/core'
 import { getVaultClient } from '@renderer/services/vault-client'
 import { useIsMobileLayout } from '@renderer/hooks/usePlatform'
 
@@ -46,6 +47,8 @@ function App() {
   const [data, setData] = useState<{ version: number; entries: VaultEntry[] } | null>(null)
   const [search, setSearch] = useState('')
   const [editingEntry, setEditingEntry] = useState<Partial<VaultEntry> | null>(null)
+  const [selectedTag, setSelectedTag] = useState('')
+  const [tagDraft, setTagDraft] = useState('')
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({})
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
@@ -108,6 +111,12 @@ function App() {
       return
     }
 
+    const tags = normalizeTags(editingEntry.tags || [])
+    if (!editingEntry.id && tags.length === 0) {
+      setError('Please add at least one tag')
+      return
+    }
+
     // Format URL if present
     let formattedUrl = editingEntry.url || ''
     if (formattedUrl && !formattedUrl.startsWith('http')) {
@@ -119,6 +128,7 @@ function App() {
       id: editingEntry.id || crypto.randomUUID(),
       url: formattedUrl,
       accounts,
+      tags,
       createdAt: editingEntry.createdAt || Date.now(),
       updatedAt: Date.now()
     } as VaultEntry
@@ -149,19 +159,61 @@ function App() {
     setExpandedAccounts(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
+  const startNewEntry = () => {
+    setTagDraft('')
+    setEditingEntry({ site: '', url: '', accounts: [], tags: [] })
+  }
+
+  const startEditEntry = (entry: VaultEntry) => {
+    setTagDraft('')
+    setEditingEntry(entry)
+  }
+
+  const addTag = (rawTag: string) => {
+    const tag = rawTag.trim()
+    if (!tag || !editingEntry) return
+    const tags = normalizeTags(editingEntry.tags || [])
+    if (tags.some(existing => existing.toLowerCase() === tag.toLowerCase())) {
+      setTagDraft('')
+      return
+    }
+    if (tags.length >= 3) {
+      setError('最多添加 3 个标签')
+      return
+    }
+    updateEditingEntry({ tags: [...tags, tag] })
+    setTagDraft('')
+    setError('')
+  }
+
+  const removeTag = (tagToRemove: string) => {
+    updateEditingEntry({
+      tags: (editingEntry?.tags || []).filter(tag => tag !== tagToRemove)
+    })
+  }
+
   const filteredEntries = useMemo(() => {
     if (!data) return []
     const s = search.toLowerCase()
     return data.entries.filter((e: VaultEntry) => {
+      const tags = e.tags || []
+      const tagMatch = !selectedTag || tags.some(tag => tag.toLowerCase() === selectedTag.toLowerCase())
       const siteMatch = e.site.toLowerCase().includes(s) || e.url.toLowerCase().includes(s)
       const accountMatch = e.accounts.some(acc => 
         acc.username.toLowerCase().includes(s) || 
         acc.notes.toLowerCase().includes(s) ||
         acc.bindings.some(b => b.label.toLowerCase().includes(s) || b.value.toLowerCase().includes(s))
       )
-      return siteMatch || accountMatch
+      return tagMatch && (siteMatch || accountMatch)
     })
-  }, [data, search])
+  }, [data, search, selectedTag])
+
+  const availableTags = useMemo(() => {
+    if (!data) return []
+    return Array.from(new Set(data.entries.flatMap(entry => entry.tags || []))).sort((a, b) =>
+      a.localeCompare(b)
+    )
+  }, [data])
 
   // Helper to update editing entry
   const updateEditingEntry = (updates: Partial<VaultEntry>) => {
@@ -378,7 +430,7 @@ function App() {
             </button>
             <div className="hidden md:block h-6 w-px bg-slate-800" />
             <button
-              onClick={() => setEditingEntry({ site: '', url: '', accounts: [] })}
+              onClick={startNewEntry}
               className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2.5 md:py-2 bg-blue-600 hover:bg-blue-500 rounded-xl md:rounded-lg text-sm font-semibold transition-colors min-h-[44px]"
             >
               <Plus className="w-4 h-4 shrink-0" />
@@ -388,15 +440,46 @@ function App() {
         </div>
       </header>
 
+      {availableTags.length > 0 && (
+        <div className="shrink-0 border-b border-slate-800 bg-slate-900/30 px-4 py-3 md:px-6 overflow-x-auto">
+          <div className="flex items-center gap-2 min-w-max">
+            <Tags className="w-4 h-4 text-slate-500 shrink-0" />
+            <button
+              type="button"
+              onClick={() => setSelectedTag('')}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                !selectedTag ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'
+              }`}
+            >
+              全部
+            </button>
+            {availableTags.map(tag => (
+              <button
+                type="button"
+                key={tag}
+                onClick={() => setSelectedTag(tag)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                  selectedTag.toLowerCase() === tag.toLowerCase()
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6">
         {filteredEntries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-500 text-center px-4">
             <Key className="w-12 h-12 mb-4 opacity-40" />
-            <p className="text-sm">{search ? '没有匹配的条目' : '暂无密码条目'}</p>
-            {!search && (
+            <p className="text-sm">{search || selectedTag ? '没有匹配的条目' : '暂无密码条目'}</p>
+            {!search && !selectedTag && (
               <button
-                onClick={() => setEditingEntry({ site: '', url: '', accounts: [] })}
+                onClick={startNewEntry}
                 className="mt-4 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold text-white"
               >
                 添加第一条
@@ -430,7 +513,7 @@ function App() {
                 </div>
                 <div className="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                   <button
-                    onClick={() => setEditingEntry(entry)}
+                    onClick={() => startEditEntry(entry)}
                     className="p-2.5 md:p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white"
                     aria-label="Edit entry"
                   >
@@ -556,6 +639,52 @@ function App() {
                 </div>
               </div>
 
+              {/* Tags */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500 uppercase">Tags</label>
+                  <span className="text-[11px] text-slate-600">建议 1–2 个，最多 3 个</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {(editingEntry.tags || []).map(tag => (
+                    <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-xs">
+                      {tag}
+                      <button type="button" onClick={() => removeTag(tag)} className="hover:text-white" aria-label={`Remove ${tag}`}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    className="flex-1 min-w-0 px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm focus:border-blue-500 outline-none"
+                    value={tagDraft}
+                    onChange={e => setTagDraft(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault()
+                        addTag(tagDraft)
+                      }
+                    }}
+                    placeholder="输入新标签后回车"
+                  />
+                  <button type="button" onClick={() => addTag(tagDraft)} className="px-3 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm">
+                    添加
+                  </button>
+                </div>
+                {availableTags.filter(tag => !(editingEntry.tags || []).some(existing => existing.toLowerCase() === tag.toLowerCase())).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags
+                      .filter(tag => !(editingEntry.tags || []).some(existing => existing.toLowerCase() === tag.toLowerCase()))
+                      .map(tag => (
+                        <button type="button" key={tag} onClick={() => addTag(tag)} className="px-2.5 py-1 rounded-full border border-slate-800 text-slate-500 text-xs hover:text-white hover:border-slate-600">
+                          + {tag}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+
               {/* Accounts Section */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -610,6 +739,21 @@ function App() {
                             </button>
                           </div>
                         </div>
+                {entry.tags?.length > 0 && (
+                  <div className="px-4 md:px-5 pb-3 flex flex-wrap gap-1.5">
+                    {entry.tags.map(tag => (
+                      <button
+                        type="button"
+                        key={tag}
+                        onClick={() => setSelectedTag(tag)}
+                        className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[11px] hover:bg-blue-500/20"
+                      >
+                        <Tags className="w-3 h-3" />
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
                       </div>
 
                       {/* Bindings Sub-section */}

@@ -2,6 +2,7 @@ import { SecurityManager } from './crypto'
 import { IFileStorage } from './file-storage'
 import { VaultData } from './types'
 import { parseVaultFile, serializeVaultFile } from './vault-format'
+import { normalizeTags } from './tag-utils'
 
 function migrateEntries(parsed: VaultData): VaultData {
   if (!parsed || !Array.isArray(parsed.entries)) {
@@ -9,8 +10,8 @@ function migrateEntries(parsed: VaultData): VaultData {
   }
 
   parsed.entries = parsed.entries.map((entry: VaultData['entries'][number] & { username?: string; password?: string; notes?: string; accounts?: VaultData['entries'][number]['accounts'] }) => {
-    if (!entry.accounts) {
-      return {
+    const migratedEntry = !entry.accounts
+      ? {
         ...entry,
         accounts: [
           {
@@ -22,8 +23,12 @@ function migrateEntries(parsed: VaultData): VaultData {
           }
         ]
       }
+      : entry
+
+    return {
+      ...migratedEntry,
+      tags: normalizeTags(migratedEntry.tags)
     }
-    return entry
   })
 
   return parsed

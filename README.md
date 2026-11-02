@@ -18,6 +18,7 @@ If you lose the master password, the data cannot be recovered. That is by design
 - **Zero-knowledge encryption** — keys derived with `PBKDF2-HMAC-SHA512` (100,000 iterations), data encrypted with `AES-256-GCM` (authenticated encryption).
 - **Memory safety** — after unlocking, the master key lives only in memory and is **zeroized** (physically wiped) on lock or exit.
 - **Penetrating search** — one search box across site names, usernames, and binding attributes.
+- **Tag organization** — add up to three tags per entry, choose from existing tags or create new ones, then filter the list by tag.
 - **Clipboard hygiene** — copied passwords are cleared from the system clipboard after 30 seconds.
 - **Lock protection** — manual lock anytime; re-open always requires the master password.
 - **Pure local storage** — the vault file is stored in the app data directory, with manual **export / import** (`.kvault`) for backup and cross-device migration.

@@ -5,6 +5,7 @@ import { VaultEntry } from '../src/types'
 import { HEADER_LENGTH, parseVaultFile } from '../src/vault-format'
 import { VaultManager } from '../src/vault-manager'
 import { VaultStore } from '../src/vault-store'
+import { normalizeTags } from '../src/tag-utils'
 import { MemoryFileStorage } from './memory-storage'
 
 const VAULT_PATH = 'vault.dat'
@@ -93,6 +94,41 @@ describe('SecurityManager', () => {
       () => security.decrypt(sealed.encrypted, sealed.iv, sealed.authTag),
       /Vault is locked/
     )
+  })
+})
+
+describe('Tags', () => {
+  it('trims tags and removes case-insensitive duplicates', () => {
+    assert.deepEqual(normalizeTags([' Work ', 'work', '', 'Personal']), ['Work', 'Personal'])
+  })
+
+  it('preserves tags when an entry is saved and reloaded', () => {
+    const { storage, manager } = openVault()
+    manager.init(PASSWORD)
+    const entry = makeEntry('1', 'mail')
+    entry.tags = ['Work', 'Accounts']
+    manager.saveEntry(entry)
+
+    const reopened = openVault(storage)
+    assert.equal(reopened.manager.unlock(PASSWORD), true)
+    assert.deepEqual(reopened.manager.getData()?.entries[0].tags, ['Work', 'Accounts'])
+  })
+
+  it('migrates legacy entries without tags to an empty tag list', () => {
+    const { storage, manager, store } = openVault()
+    manager.init(PASSWORD)
+    store.setData({
+      version: 1,
+      entries: [{
+        ...makeEntry('legacy', 'legacy'),
+        tags: undefined as unknown as string[]
+      }]
+    })
+    store.save()
+
+    const reopened = openVault(storage)
+    assert.equal(reopened.manager.unlock(PASSWORD), true)
+    assert.deepEqual(reopened.manager.getData()?.entries[0].tags, [])
   })
 })
 
