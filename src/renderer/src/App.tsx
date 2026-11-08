@@ -21,11 +21,13 @@ import {
   Tags,
   Download,
   Upload,
-  AlertTriangle
+  AlertTriangle,
+  Printer
 } from 'lucide-react'
 import { VaultEntry, Account, Binding, normalizeTags } from '@keyvault/core'
 import { getVaultClient } from '@renderer/services/vault-client'
-import { useIsMobileLayout } from '@renderer/hooks/usePlatform'
+import { useIsMobileLayout, useIsNativeApp } from '@renderer/hooks/usePlatform'
+import { PrintBackupDialog } from '@renderer/PrintBackupDialog'
 
 const vault = getVaultClient()
 
@@ -41,6 +43,7 @@ const getSafeHostname = (url: string) => {
 
 function App() {
   const isMobile = useIsMobileLayout()
+  const isNative = useIsNativeApp()
   const [isLocked, setIsLocked] = useState(true)
   const [hasVault, setHasVault] = useState(false)
   const [password, setPassword] = useState('')
@@ -53,12 +56,14 @@ function App() {
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showPrintPreview, setShowPrintPreview] = useState(false)
 
   useEffect(() => {
     checkVault()
     vault.onLocked(() => {
       setIsLocked(true)
       setData(null)
+      setShowPrintPreview(false)
     })
   }, [])
 
@@ -414,6 +419,16 @@ function App() {
               <Unlock className="w-5 h-5" />
             </button>
             <div className="hidden md:block h-6 w-px bg-slate-800" />
+            {!isNative && (
+              <button
+                onClick={() => setShowPrintPreview(true)}
+                className="p-2.5 md:p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+                title="打印预览（明文备份）"
+                aria-label="打印预览"
+              >
+                <Printer className="w-5 h-5" />
+              </button>
+            )}
             <button
               onClick={handleExport}
               className="p-2.5 md:p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
@@ -620,6 +635,10 @@ function App() {
         </div>
         )}
       </main>
+
+      {showPrintPreview && data && (
+        <PrintBackupDialog data={data} onClose={() => setShowPrintPreview(false)} />
+      )}
 
       {/* Edit Modal — full screen on mobile */}
       {editingEntry && (

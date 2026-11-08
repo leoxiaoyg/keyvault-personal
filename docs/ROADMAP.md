@@ -9,6 +9,7 @@ Public work board for this repository. Open items should also exist as GitHub Is
 - Entry tags, tag filter, search AND tag
 - Bundle `@keyvault/core` into the Electron main process
 - Import merge checks for truncated / foreign-password backups
+- Paper backup: print preview, then PDF or PNG, then the system print dialog
 
 ## Open
 

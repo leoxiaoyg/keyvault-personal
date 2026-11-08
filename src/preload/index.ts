@@ -12,6 +12,8 @@ const api = {
   deleteEntry: (id: string) => ipcRenderer.invoke('vault:delete-entry', id),
   exportVault: () => ipcRenderer.invoke('vault:export'),
   importVault: () => ipcRenderer.invoke('vault:import'),
+  exportPaperBackup: (options: { format: 'pdf' | 'png' }) =>
+    ipcRenderer.invoke('vault:export-paper-backup', options.format),
   copyToClipboard: (text: string) => ipcRenderer.invoke('clipboard:copy', text),
   onLocked: (callback: () => void) => ipcRenderer.on('vault:locked-event', () => callback())
 }

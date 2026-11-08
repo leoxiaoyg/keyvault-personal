@@ -14,6 +14,8 @@ The desktop app and the Android plugin use the same layout. The app does not upl
 
 Export writes a copy of the encrypted file (`.kvault`). It is not a plaintext dump.
 
+Print preview shows every entry in the unlocked vault. Confirming writes a PDF or PNG and then opens the system print dialog. That file and any paper copy are **plaintext**. Anyone who can read them can read the passwords. The app does not encrypt, watermark, or expire those files. Do not put them on cloud drive, email, or chat. Preview itself does not write a file.
+
 ## What you still have to assume
 
 While the vault is unlocked, the derived key and the decrypted entries are in process memory. Locking zeroes the key buffer and drops the in-memory copy. That does not scrub every string the UI or the runtime already made. A debugger, another process with access to this process, or someone at the unlocked machine can read entries until you lock or quit.

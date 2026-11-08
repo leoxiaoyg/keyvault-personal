@@ -4,6 +4,8 @@ import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { vaultManager } from './vault-instance'
 import { VaultEntry } from '../common/types'
+import { exportPaperBackup } from './paper-backup'
+import { PaperBackupFormat } from '@keyvault/core'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -119,6 +121,12 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('vault:export-paper-backup', async (_, format: PaperBackupFormat) => {
+    if (!mainWindow) return { success: false, error: 'No window' }
+    if (vaultManager.isLocked()) return { success: false, error: 'Locked' }
+    return exportPaperBackup(mainWindow, vaultManager.getData(), format)
+  })
+
   ipcMain.handle('clipboard:copy', (_, text: string) => {
     clipboard.writeText(text)
     setTimeout(() => {
@@ -138,7 +146,7 @@ app.whenReady().then(() => {
 
 function lockVault(): void {
   vaultManager.lock()
-  if (mainWindow) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('vault:locked-event')
   }
 }

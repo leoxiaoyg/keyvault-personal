@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add print preview for a plaintext paper backup. Confirm writes a PDF or PNG, then opens the system print dialog.
+
 ## 1.1.0
 
 - Add tags on site entries, with reuse, custom tags, and list filtering.

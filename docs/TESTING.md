@@ -26,6 +26,9 @@ CI (`.github/workflows/ci.yml`) runs tests on Ubuntu and the desktop build on Wi
 5. Export `.kvault`. Import it into the same vault. Existing sites stay; new sites are added.
 6. Import a truncated or foreign-password backup. The vault stays unchanged and shows an error.
 7. Close the window. Re-open. Unlock is required.
+8. Click print. The preview lists every site, including passwords, and no file is created yet. Cancel. Confirm no new PDF or PNG appeared.
+9. Open print again. Confirm as PDF, cancel the save dialog. Still no file. Confirm again, save a PDF, then cancel the system print dialog. The PDF exists and contains the passwords in plaintext.
+10. Repeat confirm as PNG for a short vault. The image is readable. Close the vault; print is gone until unlock.
 
 ## P0 smoke (Android, still experimental)
 

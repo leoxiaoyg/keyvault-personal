@@ -22,6 +22,7 @@ If you lose the master password, the data cannot be recovered. That is by design
 - **Clipboard hygiene** — copied passwords are cleared from the system clipboard after 30 seconds.
 - **Lock protection** — lock manually, or close the window; re-open always requires the master password.
 - **Pure local storage** — the vault file is stored in the app data directory, with manual **export / import** (`.kvault`) for backup and cross-device migration.
+- **Paper backup** — Print opens a preview of every entry. Confirming writes a PDF or PNG, then the system print dialog. This file is plaintext; keep it offline.
 - **Portable** — ships as a single portable `.exe`, no installer required.
 
 ## Security Model
@@ -50,7 +51,7 @@ Limits, and what this app does not protect against, are in [SECURITY.md](SECURIT
 | Android | Experimental — same vault format, real-device interop still open |
 | macOS / Linux | Source builds only |
 
-Back up with **Export** inside the app (`.kvault`). If the master password is lost, the vault cannot be opened.
+Back up with **Export** inside the app (`.kvault`). For a readable offline copy after a disk failure, use **Print** (PDF or image). That copy is not encrypted. If the master password is lost, the `.kvault` file cannot be opened.
 
 ## Screenshots
 
@@ -114,7 +115,7 @@ See [docs/MOBILE.md](docs/MOBILE.md) and [docs/ANDROID-PACKAGING.md](docs/ANDROI
 | Linux | `~/.config/keyvault-personal/vault.dat` |
 | Android | `context.filesDir/vault.dat` |
 
-Back up by exporting a `.kvault` file from inside the app.
+Encrypted backup: export a `.kvault` file from inside the app. Readable offline copy: Print → confirm → PDF or PNG.
 
 ## Project Structure
 

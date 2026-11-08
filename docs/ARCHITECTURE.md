@@ -22,7 +22,7 @@ flowchart LR
 | Layer | Location | Role |
 |---|---|---|
 | UI | `src/renderer` | React list, editor, search, tags. Shared by desktop and Android webview. |
-| Desktop shell | `src/main`, `src/preload` | File dialogs, clipboard, IPC. Bundles `@keyvault/core`. |
+| Desktop shell | `src/main`, `src/preload` | File dialogs, clipboard, paper-backup PDF/PNG, IPC. Bundles `@keyvault/core`. |
 | Mobile shell | `mobile/android-plugin` | Capacitor plugin. PBKDF2 + AES-GCM in Kotlin, same file layout. |
 | Core | `packages/vault-core` | Types, KDF, AES-GCM, vault file parse/serialize, migrate, import merge. |
 
@@ -38,6 +38,7 @@ The renderer never sees the master key. Desktop crypto runs in the main process.
 - Cipher: AES-256-GCM, 12-byte IV, 16-byte tag
 - Payload: JSON `{ version, entries[] }`
 - Export (`.kvault`) is a copy of that encrypted file, not plaintext
+- Paper backup HTML is built in `vault-core`. The desktop shell writes PDF/PNG only after the user confirms in the preview. That output is plaintext.
 
 Desktop `vault-core` and Android `VaultCrypto.kt` must keep these numbers identical. A constant check lives in `packages/vault-core/test/vault-core.test.ts`.
 
