@@ -90,7 +90,7 @@ npm run build
 
 # 5. 打包便携 Windows .exe
 npm run package
-# → dist/KeyVault Personal 1.1.0.exe
+# → dist/KeyVault Personal 1.2.0.exe
 ```
 
 ### Android（实验性）

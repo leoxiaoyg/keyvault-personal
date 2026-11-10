@@ -1,6 +1,6 @@
 {
   "name": "keyvault-personal",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A secure local-first personal password manager.",
   "main": "./out/main/index.js",
   "workspaces": [

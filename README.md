@@ -90,7 +90,7 @@ npm run build
 
 # 5. Package a portable Windows .exe
 npm run package
-# → dist/KeyVault Personal 1.1.0.exe
+# → dist/KeyVault Personal 1.2.0.exe
 ```
 
 ### Android (experimental)

@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.2.0
 
-- Add print preview for a plaintext paper backup. Confirm writes a PDF or PNG, then opens the system print dialog.
+- Add print preview for a plaintext paper backup. Confirm writes a local PDF or PNG, then opens the system print dialog.
 
 ## 1.1.0
 
